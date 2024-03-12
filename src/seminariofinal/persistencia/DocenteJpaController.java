@@ -2,25 +2,31 @@
 package seminariofinal.persistencia;
 
 import java.io.Serializable;
+import javax.persistence.Query;
+import javax.persistence.EntityNotFoundException;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+import seminariofinal.logica.Instituto;
+import seminariofinal.logica.Asignatura;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Query;
-import javax.persistence.EntityNotFoundException;
 import javax.persistence.Persistence;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import seminariofinal.logica.Docente;
 import seminariofinal.persistencia.exceptions.NonexistentEntityException;
+
 
 public class DocenteJpaController implements Serializable {
 
     public DocenteJpaController(EntityManagerFactory emf) {
         this.emf = emf;
     }
+    
     public DocenteJpaController(){
         emf = Persistence.createEntityManagerFactory("SeminarioFinalPU");
     }
+    
     private EntityManagerFactory emf = null;
 
     public EntityManager getEntityManager() {
@@ -28,11 +34,38 @@ public class DocenteJpaController implements Serializable {
     }
 
     public void create(Docente docente) {
+        if (docente.getListaAsignaturas() == null) {
+            docente.setListaAsignaturas(new ArrayList<Asignatura>());
+        }
         EntityManager em = null;
         try {
             em = getEntityManager();
             em.getTransaction().begin();
+            Instituto insti = docente.getInsti();
+            if (insti != null) {
+                insti = em.getReference(insti.getClass(), insti.getIdInsti());
+                docente.setInsti(insti);
+            }
+            List<Asignatura> attachedListaAsignaturas = new ArrayList<Asignatura>();
+            for (Asignatura listaAsignaturasAsignaturaToAttach : docente.getListaAsignaturas()) {
+                listaAsignaturasAsignaturaToAttach = em.getReference(listaAsignaturasAsignaturaToAttach.getClass(), listaAsignaturasAsignaturaToAttach.getIdAsignatura());
+                attachedListaAsignaturas.add(listaAsignaturasAsignaturaToAttach);
+            }
+            docente.setListaAsignaturas(attachedListaAsignaturas);
             em.persist(docente);
+            if (insti != null) {
+                insti.getListaDocentes().add(docente);
+                insti = em.merge(insti);
+            }
+            for (Asignatura listaAsignaturasAsignatura : docente.getListaAsignaturas()) {
+                Docente oldDocenteOfListaAsignaturasAsignatura = listaAsignaturasAsignatura.getDocente();
+                listaAsignaturasAsignatura.setDocente(docente);
+                listaAsignaturasAsignatura = em.merge(listaAsignaturasAsignatura);
+                if (oldDocenteOfListaAsignaturasAsignatura != null) {
+                    oldDocenteOfListaAsignaturasAsignatura.getListaAsignaturas().remove(listaAsignaturasAsignatura);
+                    oldDocenteOfListaAsignaturasAsignatura = em.merge(oldDocenteOfListaAsignaturasAsignatura);
+                }
+            }
             em.getTransaction().commit();
         } finally {
             if (em != null) {
@@ -46,7 +79,48 @@ public class DocenteJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
+            Docente persistentDocente = em.find(Docente.class, docente.getLegajoDocente());
+            Instituto instiOld = persistentDocente.getInsti();
+            Instituto instiNew = docente.getInsti();
+            List<Asignatura> listaAsignaturasOld = persistentDocente.getListaAsignaturas();
+            List<Asignatura> listaAsignaturasNew = docente.getListaAsignaturas();
+            if (instiNew != null) {
+                instiNew = em.getReference(instiNew.getClass(), instiNew.getIdInsti());
+                docente.setInsti(instiNew);
+            }
+            List<Asignatura> attachedListaAsignaturasNew = new ArrayList<Asignatura>();
+            for (Asignatura listaAsignaturasNewAsignaturaToAttach : listaAsignaturasNew) {
+                listaAsignaturasNewAsignaturaToAttach = em.getReference(listaAsignaturasNewAsignaturaToAttach.getClass(), listaAsignaturasNewAsignaturaToAttach.getIdAsignatura());
+                attachedListaAsignaturasNew.add(listaAsignaturasNewAsignaturaToAttach);
+            }
+            listaAsignaturasNew = attachedListaAsignaturasNew;
+            docente.setListaAsignaturas(listaAsignaturasNew);
             docente = em.merge(docente);
+            if (instiOld != null && !instiOld.equals(instiNew)) {
+                instiOld.getListaDocentes().remove(docente);
+                instiOld = em.merge(instiOld);
+            }
+            if (instiNew != null && !instiNew.equals(instiOld)) {
+                instiNew.getListaDocentes().add(docente);
+                instiNew = em.merge(instiNew);
+            }
+            for (Asignatura listaAsignaturasOldAsignatura : listaAsignaturasOld) {
+                if (!listaAsignaturasNew.contains(listaAsignaturasOldAsignatura)) {
+                    listaAsignaturasOldAsignatura.setDocente(null);
+                    listaAsignaturasOldAsignatura = em.merge(listaAsignaturasOldAsignatura);
+                }
+            }
+            for (Asignatura listaAsignaturasNewAsignatura : listaAsignaturasNew) {
+                if (!listaAsignaturasOld.contains(listaAsignaturasNewAsignatura)) {
+                    Docente oldDocenteOfListaAsignaturasNewAsignatura = listaAsignaturasNewAsignatura.getDocente();
+                    listaAsignaturasNewAsignatura.setDocente(docente);
+                    listaAsignaturasNewAsignatura = em.merge(listaAsignaturasNewAsignatura);
+                    if (oldDocenteOfListaAsignaturasNewAsignatura != null && !oldDocenteOfListaAsignaturasNewAsignatura.equals(docente)) {
+                        oldDocenteOfListaAsignaturasNewAsignatura.getListaAsignaturas().remove(listaAsignaturasNewAsignatura);
+                        oldDocenteOfListaAsignaturasNewAsignatura = em.merge(oldDocenteOfListaAsignaturasNewAsignatura);
+                    }
+                }
+            }
             em.getTransaction().commit();
         } catch (Exception ex) {
             String msg = ex.getLocalizedMessage();
@@ -75,6 +149,16 @@ public class DocenteJpaController implements Serializable {
                 docente.getLegajoDocente();
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The docente with id " + id + " no longer exists.", enfe);
+            }
+            Instituto insti = docente.getInsti();
+            if (insti != null) {
+                insti.getListaDocentes().remove(docente);
+                insti = em.merge(insti);
+            }
+            List<Asignatura> listaAsignaturas = docente.getListaAsignaturas();
+            for (Asignatura listaAsignaturasAsignatura : listaAsignaturas) {
+                listaAsignaturasAsignatura.setDocente(null);
+                listaAsignaturasAsignatura = em.merge(listaAsignaturasAsignatura);
             }
             em.remove(docente);
             em.getTransaction().commit();

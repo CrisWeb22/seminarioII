@@ -2,7 +2,9 @@
 package seminariofinal.logica;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -16,23 +18,42 @@ public class Instituto implements Serializable {
     @GeneratedValue(strategy=GenerationType.AUTO)
     private int idInsti;
     private String nombreInsti;
-    @OneToMany(mappedBy="insti", fetch = FetchType.LAZY)
-    private LinkedList<CargoDocente> listaCargosDocentes;
+    @OneToMany(mappedBy="insti")
+    private List<CargoDocente> listaCargosDocentes = new ArrayList<CargoDocente>();
+    @OneToMany(mappedBy="insti")
+    private List<Docente> listaDocentes = new ArrayList<Docente>();
+    @OneToMany(mappedBy="insti")
+    private List<Asignatura> listaAsignaturas = new ArrayList<Asignatura>();
 
     public Instituto() {
     }
 
-    public Instituto(int idInsti, String nombreInsti, LinkedList<CargoDocente> listaCargosDocentes) {
+    public Instituto(int idInsti, String nombreInsti) {
         this.idInsti = idInsti;
         this.nombreInsti = nombreInsti;
-        this.listaCargosDocentes = listaCargosDocentes;
     }
 
-    public LinkedList<CargoDocente> getListaCargosDocentes() {
+    public List<Asignatura> getListaAsignaturas() {
+        return listaAsignaturas;
+    }
+
+    public void setListaAsignaturas(List<Asignatura> listaAsignaturas) {
+        this.listaAsignaturas = listaAsignaturas;
+    }
+
+    public List<Docente> getListaDocentes() {
+        return listaDocentes;
+    }
+
+    public void setListaDocentes(List<Docente> listaDocentes) {
+        this.listaDocentes = listaDocentes;
+    }
+
+    public List<CargoDocente> getListaCargosDocentes() {
         return listaCargosDocentes;
     }
 
-    public void setListaCargosDocentes(LinkedList<CargoDocente> listaCargosDocentes) {
+    public void setListaCargosDocentes(List<CargoDocente> listaCargosDocentes) {
         this.listaCargosDocentes = listaCargosDocentes;
     }
 

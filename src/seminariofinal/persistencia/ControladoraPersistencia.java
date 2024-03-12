@@ -2,10 +2,10 @@
 package seminariofinal.persistencia;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import seminariofinal.logica.Asignatura;
 import seminariofinal.logica.CargoDocente;
 import seminariofinal.logica.Docente;
 import seminariofinal.logica.Instituto;
@@ -16,7 +16,9 @@ public class ControladoraPersistencia {
     DocenteJpaController docJpa = new DocenteJpaController();
     CargoDocenteJpaController cargoJpa = new CargoDocenteJpaController();
     InstitutoJpaController instiJpa = new InstitutoJpaController();
+    AsignaturaJpaController asignaturaJpa = new AsignaturaJpaController();
 
+    //DOCENTE
     public void crearDocente(Docente doc) {
         docJpa.create(doc);
     }
@@ -80,11 +82,11 @@ public class ControladoraPersistencia {
 
     //INSTITUTO
     
-    public void crearInstituto(Instituto insti) {
+    public void crearInstituto(Instituto insti){
         instiJpa.create(insti);
     }
-
-    public void eliminarInstituto(int id) {
+    
+    public void eliminarInstituto(int id){
         try {
             instiJpa.destroy(id);
         } catch (NonexistentEntityException ex) {
@@ -104,11 +106,46 @@ public class ControladoraPersistencia {
         return instiJpa.findInstituto(id);
     }
 
-    public LinkedList<Instituto> traerListaInstituto() {
+    /*public LinkedList<Instituto> traerListaInstituto() {
         List<Instituto> lista = instiJpa.findInstitutoEntities();
         LinkedList<Instituto> listaInstitutos = new LinkedList (lista);
         return listaInstitutos;
     }
+    */
+    
+    public List<Instituto> traerListaInstituto(){
+        List<Instituto> lista = instiJpa.findInstitutoEntities();
+        return lista;
+    }
+    
+    //ASIGNATURA
+    public void crearAsignatura(Asignatura asig){
+        asignaturaJpa.create(asig);
+    }
+    
+    public void eliminarAsignatura(int id){
+        try {
+            asignaturaJpa.destroy(id);
+        } catch (NonexistentEntityException ex) {
+            Logger.getLogger(ControladoraPersistencia.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
+    public void editarAsignatura(Asignatura asig) {
+        try {
+            asignaturaJpa.edit(asig);
+        } catch (Exception ex) {
+            Logger.getLogger(ControladoraPersistencia.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public Asignatura traerAsignatura(int id) {
+        return asignaturaJpa.findAsignatura(id);
+    }
+
+    public List<Asignatura> traerListaAsignaturas(){
+        List<Asignatura> lista = asignaturaJpa.findAsignaturaEntities();
+        return lista;
+    }
    
 }

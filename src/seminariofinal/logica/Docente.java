@@ -2,11 +2,15 @@
 package seminariofinal.logica;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -25,11 +29,16 @@ public class Docente implements Serializable {
     private String correoDocente;
     @OneToOne
     private CargoDocente cargo;
+    @ManyToOne
+    private Instituto insti;
+    @OneToMany(mappedBy="docente")
+    private List<Asignatura> listaAsignaturas = new ArrayList<Asignatura>();
 
     
     public Docente() {
     }
-    public Docente(int legajoDocente, int dniDocente, String nombreDocente, String apellidoDocente, Date fechaNacimiento, String correoDocente, CargoDocente cargo) {
+
+    public Docente(int legajoDocente, int dniDocente, String nombreDocente, String apellidoDocente, Date fechaNacimiento, String correoDocente, CargoDocente cargo, Instituto insti) {
         this.legajoDocente = legajoDocente;
         this.dniDocente = dniDocente;
         this.nombreDocente = nombreDocente;
@@ -37,8 +46,25 @@ public class Docente implements Serializable {
         this.fechaNacimiento = fechaNacimiento;
         this.correoDocente = correoDocente;
         this.cargo = cargo;
+        this.insti = insti;
     }
 
+    public List<Asignatura> getListaAsignaturas() {
+        return listaAsignaturas;
+    }
+
+    public void setListaAsignaturas(List<Asignatura> listaAsignaturas) {
+        this.listaAsignaturas = listaAsignaturas;
+    }
+
+    public Instituto getInsti() {
+        return insti;
+    }
+
+    public void setInsti(Instituto insti) {
+        this.insti = insti;
+    }
+    
     public CargoDocente getCargo() {
         return cargo;
     }

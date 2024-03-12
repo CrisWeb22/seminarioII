@@ -5,6 +5,7 @@
     <class>seminariofinal.logica.CargoDocente</class>
     <class>seminariofinal.logica.Docente</class>
     <class>seminariofinal.logica.Instituto</class>
+    <class>seminariofinal.logica.Asignatura</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/seminariodos"/>
       <property name="javax.persistence.jdbc.user" value="postgres"/>

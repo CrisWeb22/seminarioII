@@ -3,6 +3,7 @@ package seminariofinal.logica;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import seminariofinal.persistencia.ControladoraPersistencia;
 
 public class ControladoraLogica {
@@ -70,7 +71,28 @@ public class ControladoraLogica {
         return controlPersis.traerInstituto(id);
     }
  
-    public LinkedList<Instituto> traerListaInstituto(){
+    public List<Instituto> traerListaInstituto(){
         return controlPersis.traerListaInstituto();
+    }
+    
+    //ASIGNATURA
+    public void crearAsignatura(Asignatura asig){
+        controlPersis.crearAsignatura(asig);
+    }
+    
+    public void eliminarAsignatura(int id){
+        controlPersis.eliminarAsignatura(id);
+    }
+    
+    public void editarAsignatura(Asignatura asig){
+        controlPersis.editarAsignatura(asig);
+    }
+    
+    public Asignatura traerAsginatura(int id){
+        return controlPersis.traerAsignatura(id);
+    }
+    
+    public List<Asignatura> traerListaAsignaturas(){
+        return controlPersis.traerListaAsignaturas();
     }
 }

@@ -11,7 +11,9 @@ import javax.persistence.Persistence;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import seminariofinal.logica.CargoDocente;
+import seminariofinal.logica.Instituto;
 import seminariofinal.persistencia.exceptions.NonexistentEntityException;
+
 
 public class CargoDocenteJpaController implements Serializable {
 
@@ -34,7 +36,16 @@ public class CargoDocenteJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
+            Instituto insti = cargoDocente.getInsti();
+            if (insti != null) {
+                insti = em.getReference(insti.getClass(), insti.getIdInsti());
+                cargoDocente.setInsti(insti);
+            }
             em.persist(cargoDocente);
+            if (insti != null) {
+                insti.getListaCargosDocentes().add(cargoDocente);
+                insti = em.merge(insti);
+            }
             em.getTransaction().commit();
         } finally {
             if (em != null) {
@@ -48,7 +59,22 @@ public class CargoDocenteJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
+            CargoDocente persistentCargoDocente = em.find(CargoDocente.class, cargoDocente.getIdCargoDocente());
+            Instituto instiOld = persistentCargoDocente.getInsti();
+            Instituto instiNew = cargoDocente.getInsti();
+            if (instiNew != null) {
+                instiNew = em.getReference(instiNew.getClass(), instiNew.getIdInsti());
+                cargoDocente.setInsti(instiNew);
+            }
             cargoDocente = em.merge(cargoDocente);
+            if (instiOld != null && !instiOld.equals(instiNew)) {
+                instiOld.getListaCargosDocentes().remove(cargoDocente);
+                instiOld = em.merge(instiOld);
+            }
+            if (instiNew != null && !instiNew.equals(instiOld)) {
+                instiNew.getListaCargosDocentes().add(cargoDocente);
+                instiNew = em.merge(instiNew);
+            }
             em.getTransaction().commit();
         } catch (Exception ex) {
             String msg = ex.getLocalizedMessage();
@@ -77,6 +103,11 @@ public class CargoDocenteJpaController implements Serializable {
                 cargoDocente.getIdCargoDocente();
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The cargoDocente with id " + id + " no longer exists.", enfe);
+            }
+            Instituto insti = cargoDocente.getInsti();
+            if (insti != null) {
+                insti.getListaCargosDocentes().remove(cargoDocente);
+                insti = em.merge(insti);
             }
             em.remove(cargoDocente);
             em.getTransaction().commit();
